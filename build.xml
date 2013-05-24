@@ -16,6 +16,7 @@
         </condition>
     </target>
     <target name="create_library" description="Create a library jar for the actor project" depends="git.revision">
+        <mkdir dir="bin"/>
         <jar jarfile="dist/actor-${repository.version}.jar" includes="*.class" basedir="bin"/>
     </target>
 </project>
