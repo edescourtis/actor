@@ -8,10 +8,8 @@ import static org.junit.Assert.*;
 import org.junit.Test;
 
 import com.benbria.actor.Actor;
-import com.benbria.actor.ActorListener;
 import com.benbria.actor.Behaviour;
 import com.benbria.actor.ThreadActor;
-import com.benbria.actor.behaviours.NullBehaviour;
 
 /**
  * @author Eric des Courtis
@@ -40,120 +38,64 @@ import com.benbria.actor.behaviours.NullBehaviour;
 	LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 	OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 	THE SOFTWARE.
-*/
-
+ */
 
 public class ThreadActorTests {
-	class StartStopExceptionCheckingActorListener implements ActorListener<String> {
-		private boolean started = false;
-		private boolean stopped = false;
-		private boolean exception = false;
-		@Override
-		public void start(Actor<String> actor) {
-			setStarted();
-		}
-		
-		@Override
-		public void stop(Actor<String> actor) {
-			setStopped();
-		}
-		
-		@Override
-		public void exception(Actor<String> actor, Exception ex) {
-			setException();
-		}
-		
-		public boolean isStarted() {
-			return started;
-		}
-		
-		public void setStarted() {
-			this.started = true;
-		}
-		
-		public boolean isStopped() {
-			return stopped;
-		}
-		
-		public void setStopped() {
-			this.stopped = true;
-		}
-		
-		public boolean isException() {
-			return exception;
-		}
-		
-		public void setException() {
-			this.exception = true;
-		}
-	};
-	
-	@Test
-	public void testStartStopException(){
-		StartStopExceptionCheckingActorListener checkListener = new StartStopExceptionCheckingActorListener();
-		Actor<String> a = ThreadActor.spawn(new NullBehaviour<String>(), checkListener);
-		
-		try {
-			a.stop();
-			Thread.sleep(1000);
-		} catch (InterruptedException e) {
-		}
-		
-		
-		assertTrue(checkListener.isStarted());
-		assertTrue(checkListener.isStopped());
-		assertFalse(checkListener.isException());
-		
-	}
-	
-	class ExceptionGeneratingBehaviour implements Behaviour<String> {
-		@Override
-		public void receive(Actor<String> self, String msg) {
-			throw new RuntimeException("evil");
-		}	
-	}
-	
-	@Test
-	public void testException() {
-		StartStopExceptionCheckingActorListener checkListener = new StartStopExceptionCheckingActorListener();
-		Actor<String> a = ThreadActor.spawn(new ExceptionGeneratingBehaviour(), checkListener);
-		try {
-			a.send("hello");
-			Thread.sleep(1000);
-			a.stop();
-		} catch (InterruptedException e) {
+    class ExceptionGeneratingBehaviour implements Behaviour<String> {
+        private boolean exceptionOccurred = false;
+        public boolean hasExceptionOccurred() {
+            return exceptionOccurred;
+        }
 
-		}
-		
-		assertTrue(checkListener.isException());
-	}
-	
-	class ReceivedMessageCheckingBehaviour implements Behaviour<String> {
-		private String msg;
-		
-		@Override
-		public void receive(Actor<String> self, String msg) {
-			this.msg = msg;
-		}
-		
-		public String getMsg() {
-			return msg;
-		}
-	}
-	
-	@Test
-	public void testSend() {
-		ReceivedMessageCheckingBehaviour behaviour = new ReceivedMessageCheckingBehaviour();
-		Actor<String> a = ThreadActor.spawn(behaviour);
-		try {
-			a.send("testing");
-			Thread.sleep(1000);
-			a.stop();
-		} catch (InterruptedException e) {
-		}
-		
-		assertEquals("testing", behaviour.getMsg());
-		
-	}
+        @Override
+        public boolean receive(Actor<String> self, String msg) {
+            throw new RuntimeException("evil");
+        }
 
+        @Override
+        public void exception(Actor<String> self, Exception e) {
+            exceptionOccurred = true;
+        }
+    }
+
+    @Test
+    public void testException() {
+        ExceptionGeneratingBehaviour behaviour = new ExceptionGeneratingBehaviour();
+        Actor<String> a = ThreadActor.spawn(behaviour);
+        try {
+            a.send("hello");
+            Thread.sleep(1000);
+        } catch (InterruptedException e) { }
+        assertTrue(behaviour.hasExceptionOccurred());
+    }
+
+    class ReceivedMessageCheckingBehaviour implements Behaviour<String> {
+        private String msg;
+
+        @Override
+        public boolean receive(Actor<String> self, String msg) {
+            this.msg = msg;
+            return false;
+        }
+
+        public String getMsg() {
+            return msg;
+        }
+
+        @Override
+        public void exception(Actor<String> self, Exception e) {
+            assertTrue(false);
+        }
+    }
+
+    @Test
+    public void testSend() {
+        ReceivedMessageCheckingBehaviour behaviour = new ReceivedMessageCheckingBehaviour();
+        Actor<String> a = ThreadActor.spawn(behaviour);
+        try {
+            a.send("testing");
+            Thread.sleep(1000);
+        } catch (InterruptedException e) { }
+        assertEquals("testing", behaviour.getMsg());
+    }
 }

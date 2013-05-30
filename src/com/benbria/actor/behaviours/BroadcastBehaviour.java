@@ -27,8 +27,7 @@ package com.benbria.actor.behaviours;
 	LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 	OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 	THE SOFTWARE.
-*/
-
+ */
 
 import java.util.LinkedList;
 import java.util.List;
@@ -37,16 +36,25 @@ import com.benbria.actor.Actor;
 import com.benbria.actor.Behaviour;
 
 public class BroadcastBehaviour<T> implements Behaviour<T> {
-	private List<Behaviour<T>> behaviourList = new LinkedList<Behaviour<T>>();
+    private List<Behaviour<T>> behaviourList = new LinkedList<Behaviour<T>>();
 
-	public BroadcastBehaviour(List<Behaviour<T>> behaviourList) {
-		this.behaviourList.addAll(behaviourList);
-	}
+    public BroadcastBehaviour(List<Behaviour<T>> behaviourList) {
+        this.behaviourList.addAll(behaviourList);
+    }
 
-	@Override
-	public void receive(Actor<T> self, T msg) {
-		for(Behaviour<T>  behaviour: behaviourList){
-			behaviour.receive(self, msg);
-		}
-	}
+    @Override
+    public boolean receive(Actor<T> self, T msg) {
+        boolean result = true;
+        for(Behaviour<T>  behaviour: behaviourList){
+            result &= behaviour.receive(self, msg);
+        }
+        return result;
+    }
+
+    @Override
+    public void exception(Actor<T> self, Exception e) {
+        for(Behaviour<T>  behaviour: behaviourList){
+            behaviour.exception(self, e);
+        }
+    }
 }

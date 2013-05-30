@@ -27,9 +27,11 @@ package com.benbria.actor.behaviours;
 	LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 	OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 	THE SOFTWARE.
-*/
+ */
 
 
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
 import java.util.logging.Logger;
 
 import com.benbria.actor.Actor;
@@ -37,9 +39,17 @@ import com.benbria.actor.Behaviour;
 
 public final class LoggingBehaviour<T> implements
 Behaviour<T> {
-	private final static Logger logger = Logger.getLogger(LoggingBehaviour.class.getName());
-	@Override
-	public void receive(Actor<T> self, T msg) {
-		logger.info(self + ": " + msg);
-	}
+    private final static Logger logger = Logger.getLogger(LoggingBehaviour.class.getName());
+    @Override
+    public boolean receive(Actor<T> self, T msg) {
+        logger.info(self + ": " + msg);
+        return true;
+    }
+
+    @Override
+    public void exception(Actor<T> self, Exception e) {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        e.printStackTrace(new PrintStream(baos, true));
+        logger.severe(self + ": " + baos.toString());
+    }
 }

@@ -32,5 +32,4 @@ package com.benbria.actor;
 
 public interface Actor<T> extends Runnable {
 	public abstract void send(T msg) throws InterruptedException;
-	public abstract void stop() throws InterruptedException;
 }

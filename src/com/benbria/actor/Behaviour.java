@@ -31,5 +31,6 @@ package com.benbria.actor;
 
 
 public interface Behaviour<T> {
-	void receive(Actor<T> self, T msg);
+    boolean receive(Actor<T> self, T msg);
+    void exception(Actor<T> actor, Exception e);
 }
