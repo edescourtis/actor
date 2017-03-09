@@ -15,7 +15,7 @@ A minimal java actor library.
                 }
 
                 @Override
-                public void exception(Actor<String> self, Exception e) {}
+                public void onException(Actor<String> self, Exception e) {}
             });
  
             actor.send("hello");
